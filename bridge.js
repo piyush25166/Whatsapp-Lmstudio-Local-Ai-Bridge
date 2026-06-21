@@ -1,42 +1,72 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
 const axios = require('axios');
 
-// Initialize the WhatsApp Client
-// LocalAuth saves your session so you only scan the QR code once
 const client = new Client({
-    authStrategy: new LocalAuth()
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+        handleSIGINT: false,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    }
 });
 
-client.on('qr', (qr) => {
-    // Generate and print the QR code to your terminal
-    qrcode.generate(qr, { small: true });
-    console.log('Scan the QR code above with your WhatsApp app to connect.');
+const WEBUI_API = 'http://127.0.0.1:5000';
+
+async function sendLogToUI(message) {
+    try {
+        await axios.post(`${WEBUI_API}/api/bridge-log`, { log: message });
+    } catch (e) {
+        console.log("Failed to send log to UI:", e.message);
+    }
+}
+
+client.on('qr', async (qr) => {
+    try {
+        await axios.post(`${WEBUI_API}/api/update-qr`, { qr });
+    } catch (err) {
+        console.error('Failed to broadcast pairing state down to Flask:', err.message);
+    }
 });
 
-client.on('ready', () => {
-    console.log('Client is ready! WhatsApp connected and listening for messages...');
+client.on('ready', async () => {
+    try {
+        await axios.post(`${WEBUI_API}/api/update-status`, { status: 'Connected' });
+        await sendLogToUI("[BRIDGE] Core engine fully synchronized with WhatsApp Web cluster.");
+    } catch (err) {
+        console.error('State synchronization fault:', err.message);
+    }
 });
 
+// Capture pristine incoming messages from external accounts cleanly
 client.on('message', async msg => {
-    // Filter to only respond to text messages from individuals (ignore groups/status updates)
-    if (msg.from.includes('@c.us') && msg.type === 'chat') {
-        console.log(`Received from ${msg.from}: ${msg.body}`);
-        
+    // Ignore group chats entirely to conserve local hardware resources
+    if (msg.from.includes('@g.us')) return;
+
+    await sendLogToUI(`[BRIDGE] Intercepted incoming transmission type [${msg.type}] from [${msg.from}]`);
+
+    // Only process standard text conversations
+    if (msg.type === 'chat') {
         try {
-            // Forward the WhatsApp message to your Python Flask server
-            const response = await axios.post('http://127.0.0.1:5000/chat', {
+            // 1. Fetch the active chat instance
+            const chat = await msg.getChat();
+            
+            // 2. Broadcast the native "typing..." presence to the sender
+            await chat.sendStateTyping();
+            await sendLogToUI(`[BRIDGE] Triggered native "typing..." status flag for chat thread.`);
+
+            // 3. Pipe the text to your Flask app / LM Studio backend
+            const response = await axios.post(`${WEBUI_API}/api/chat`, {
                 message: msg.body,
                 sender: msg.from
             });
             
-            // Send the Python/LM Studio reply back to the WhatsApp user
-            const aiReply = response.data.reply;
-            msg.reply(aiReply);
-            
+            // 4. Dispatch response (this automatically concludes the typing animation)
+            await msg.reply(response.data.reply);
+            await sendLogToUI(`[BRIDGE] Outbound reply dispatched smoothly to user.`);
         } catch (err) {
-            console.error("Error communicating with Python backend:", err.message);
+            await sendLogToUI(`[❌ BRIDGE ERROR] Data pipeline delivery breakdown: ${err.message}`);
         }
+    } else {
+        await sendLogToUI(`[BRIDGE] Ignored message type: ${msg.type}. System only responds to plain text.`);
     }
 });
 
