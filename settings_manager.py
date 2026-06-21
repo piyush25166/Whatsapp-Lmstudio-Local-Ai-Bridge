@@ -34,6 +34,14 @@ DEFAULTS = {
     # only triggers on the literal "@think" tag in the message text.
     "thinking_trigger_tag": "@think",
 
+    # Group reply gating
+    # True  = only reply in groups when @mentioned, replied-to, or @think
+    #         tagged. The bot still SEES and remembers every group message
+    #         either way - this only controls whether it talks.
+    # False = reply to every message in every group, same as a DM.
+    "require_mention_in_groups": True,
+    "log_unreplied_group_messages": True,
+
     # Humanizer / pacing
     "pacing_strategy": "both",      # "delay" | "chunked" | "both"
     "typing_cps": 14,               # characters-per-second assumed typing speed

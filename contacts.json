@@ -6,9 +6,9 @@
     "status": "allowed",
     "mode_override": null,
     "notes": "friendly talk in nepali-english",
-    "message_count": 28,
+    "message_count": 31,
     "first_seen": "2026-06-21T07:40:56.690676+00:00",
-    "last_seen": "2026-06-21T08:17:05.972565+00:00"
+    "last_seen": "2026-06-21T21:05:53.604200+00:00"
   },
   "119297129091272@lid": {
     "chat_id": "119297129091272@lid",
@@ -97,5 +97,27 @@
     "message_count": 18,
     "first_seen": "2026-06-21T15:40:56.632013+00:00",
     "last_seen": "2026-06-21T15:44:16.984838+00:00"
+  },
+  "120363402985955712@g.us": {
+    "chat_id": "120363402985955712@g.us",
+    "display_name": "PI Nepal ",
+    "is_group": true,
+    "status": "allowed",
+    "mode_override": null,
+    "notes": "",
+    "message_count": 27,
+    "first_seen": "2026-06-21T21:01:30.881306+00:00",
+    "last_seen": "2026-06-21T21:01:33.030323+00:00"
+  },
+  "120363424424005103@g.us": {
+    "chat_id": "120363424424005103@g.us",
+    "display_name": "Math",
+    "is_group": true,
+    "status": "allowed",
+    "mode_override": null,
+    "notes": "",
+    "message_count": 7,
+    "first_seen": "2026-06-21T21:03:15.634220+00:00",
+    "last_seen": "2026-06-21T21:22:44.511637+00:00"
   }
 }

@@ -216,6 +216,36 @@
                     <input type="text" id="thinkTag" class="w-full bg-dark-900 border border-white/10 rounded-md px-3 py-2 text-sm text-white font-mono" value="@think">
                 </div>
 
+                <!-- Group reply gating -->
+                <div class="glass rounded-xl p-5 col-span-2">
+                    <h3 class="text-sm font-semibold text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-users-three text-cyan-400"></i> Group Reply Rules</h3>
+                    <p class="text-[11px] text-gray-500 mb-4">Controls whether the clone needs to be addressed directly to speak up in a group.</p>
+
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-sm text-gray-200">Require mention / reply to respond in groups</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">
+                                <span class="text-emerald-400">On</span> — only replies when @mentioned, replied-to directly, or tagged with
+                                <code class="text-brand-400">@think</code>.
+                                <span class="text-amber-400">Off</span> — replies to every message in every group, like a DM.
+                            </p>
+                        </div>
+                        <button id="requireMentionToggle" class="toggle relative w-9 h-5 rounded-full toggle-track shrink-0" style="background:#27272a">
+                            <span class="toggle-thumb absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white"></span>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-200">Still remember unreplied group messages</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">Keeps logging every group message to memory even when the bot doesn't reply, so it has real context whenever it does speak.</p>
+                        </div>
+                        <button id="logUnrepliedToggle" class="toggle relative w-9 h-5 rounded-full toggle-track shrink-0" style="background:#27272a">
+                            <span class="toggle-thumb absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white"></span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Humanizer -->
                 <div class="glass rounded-xl p-5 col-span-2">
                     <h3 class="text-sm font-semibold text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-hand-tap text-amber-400"></i> Human Typing Replication</h3>
@@ -372,6 +402,9 @@
 
             document.getElementById('memLimit').value = s.memory_char_limit;
             document.getElementById('memLimitVal').textContent = s.memory_char_limit;
+
+            setToggleVisual(document.getElementById('requireMentionToggle'), s.require_mention_in_groups);
+            setToggleVisual(document.getElementById('logUnrepliedToggle'), s.log_unreplied_group_messages);
         }
 
         // live label updates while dragging
@@ -394,6 +427,18 @@
         document.getElementById('internetToggleBtn').addEventListener('click', async () => {
             await fetch(`${API}/api/toggle-internet`, { method: 'POST' });
             refreshState();
+        });
+        document.getElementById('requireMentionToggle').addEventListener('click', async () => {
+            const current = await (await fetch(`${API}/api/settings`)).json();
+            const newVal = !current.require_mention_in_groups;
+            await fetch(`${API}/api/settings`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ require_mention_in_groups: newVal }) });
+            setToggleVisual(document.getElementById('requireMentionToggle'), newVal);
+        });
+        document.getElementById('logUnrepliedToggle').addEventListener('click', async () => {
+            const current = await (await fetch(`${API}/api/settings`)).json();
+            const newVal = !current.log_unreplied_group_messages;
+            await fetch(`${API}/api/settings`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ log_unreplied_group_messages: newVal }) });
+            setToggleVisual(document.getElementById('logUnrepliedToggle'), newVal);
         });
 
         document.getElementById('saveSettingsBtn').addEventListener('click', async () => {

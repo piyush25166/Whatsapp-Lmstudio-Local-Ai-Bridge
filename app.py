@@ -55,7 +55,6 @@ def load_persona():
 
 # --- MODE RESOLUTION ---
 
-
 def resolve_mode(chat_id, message_text, is_group, was_mentioned):
     """
     Decides "casual" or "thinking" for this specific incoming message.
@@ -65,9 +64,10 @@ def resolve_mode(chat_id, message_text, is_group, was_mentioned):
        outright, no matter what's in the message text.
     2. Explicit @think tag in the message text switches this ONE message to
        thinking mode.
-    3. Otherwise: casual. (DMs always reply in casual unless tagged; groups
-       only ever reach this function when mentioned/tagged at all, per the
-       bridge's own filtering, and default to casual there too.)
+    3. Otherwise: casual. (Whether the bot replies AT ALL in a group is
+       decided by the bridge before this function is ever called - that's
+       the require_mention_in_groups setting, a separate concern from which
+       mode a reply uses once we've decided to send one.)
     """
     override = contacts.get_mode_override(chat_id)
     if override in ("casual", "thinking"):
@@ -94,14 +94,12 @@ def mode_config(mode):
 
 # --- UI ROUTES ---
 
-
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
 # --- STATE / SETTINGS ENDPOINTS ---
-
 
 @app.route("/api/state", methods=["GET"])
 def get_state():
@@ -118,13 +116,11 @@ def get_state():
     except Exception:
         state["lm_studio_connected"] = False
 
-    return jsonify(
-        {
-            **state,
-            "settings": settings.get_all(),
-            "active_chats": len(memory_engine.get_all_memories()),
-        }
-    )
+    return jsonify({
+        **state,
+        "settings": settings.get_all(),
+        "active_chats": len(memory_engine.get_all_memories()),
+    })
 
 
 @app.route("/api/settings", methods=["GET"])
@@ -177,7 +173,6 @@ def select_model():
 
 # --- CONTACT / GROUP MANAGEMENT ENDPOINTS ---
 
-
 @app.route("/api/contacts", methods=["GET"])
 def list_contacts():
     return jsonify(contacts.get_all())
@@ -228,7 +223,6 @@ def delete_contact(chat_id):
 
 # --- MEMORY / TRANSCRIPT ENDPOINTS ---
 
-
 @app.route("/api/memories", methods=["GET"])
 def get_memories():
     return jsonify(memory_engine.get_all_memories())
@@ -249,8 +243,44 @@ def clear_memory():
     return jsonify({"success": success})
 
 
-# --- BRIDGE ENDPOINTS (called by bridge.js) ---
+@app.route("/api/log-only", methods=["POST"])
+def log_only():
+    """Records a group message the bot SAW but is not replying to (e.g.
+    'require mention' is on and nobody addressed it). This keeps the bot's
+    memory of the group conversation continuous, so when it DOES reply it
+    has real context instead of only ever seeing the single triggering
+    message. Never calls the LLM, never costs tokens, never sends anything."""
+    data = request.json or {}
+    chat_id = data.get("chat_id", "unknown")
+    sender = data.get("sender_name", "User")
+    text = data.get("message", "")
+    is_group = bool(data.get("is_group", False))
 
+    if not settings.get("log_unreplied_group_messages", True):
+        return jsonify({"logged": False})
+    if contacts.is_blocked(chat_id):
+        return jsonify({"logged": False})
+
+    mem = memory_engine.load_memory(chat_id)
+    formatted_msg = f"[{sender}]: {text}"
+    mem["messages"].append({"role": "user", "content": formatted_msg})
+    mem["char_count"] += len(formatted_msg)
+    memory_engine.save_memory(mem)
+
+    memory_engine.append_transcript(
+        chat_id, "user", text,
+        meta={"sender_name": sender, "is_group": is_group, "replied": False},
+    )
+
+    if mem["char_count"] > memory_engine.char_limit:
+        memory_engine.trigger_summarize(
+            chat_id, LM_STUDIO_URL, settings.get("selected_model"), log
+        )
+
+    return jsonify({"logged": True})
+
+
+# --- BRIDGE ENDPOINTS (called by bridge.js) ---
 
 @app.route("/api/bridge-log", methods=["POST"])
 def bridge_log():
@@ -341,27 +371,18 @@ def chat():
 
     payload = [{"role": "system", "content": load_persona()}]
     if contact_notes:
-        payload.append(
-            {
-                "role": "system",
-                "content": f"Note about this specific contact/group: {contact_notes}",
-            }
-        )
-    payload.append(
-        {
+        payload.append({
             "role": "system",
-            "content": f"Current mode: {mode.upper()}. "
-            + (
-                "Keep it SHORT and casual."
-                if mode == "casual"
-                else "You may reason and respond more thoroughly."
-            ),
-        }
-    )
+            "content": f"Note about this specific contact/group: {contact_notes}",
+        })
+    payload.append({
+        "role": "system",
+        "content": f"Current mode: {mode.upper()}. "
+                    + ("Keep it SHORT and casual." if mode == "casual"
+                       else "You may reason and respond more thoroughly."),
+    })
     if mem["summary"]:
-        payload.append(
-            {"role": "system", "content": f"Prior context:\n{mem['summary']}"}
-        )
+        payload.append({"role": "system", "content": f"Prior context:\n{mem['summary']}"})
     for m in mem["messages"]:
         payload.append(m)
     payload.append({"role": "user", "content": formatted_msg + search_context})
@@ -377,11 +398,8 @@ def chat():
         reply = response.choices[0].message.content
         usage = getattr(response, "usage", None)
         tokens_used = getattr(usage, "total_tokens", None) if usage else None
-        log(
-            f"🚀 Reply generated ({mode} mode, cap={cfg['max_tokens']}"
-            + (f", used={tokens_used}" if tokens_used is not None else "")
-            + ")"
-        )
+        log(f"🚀 Reply generated ({mode} mode, cap={cfg['max_tokens']}"
+            + (f", used={tokens_used}" if tokens_used is not None else "") + ")")
 
         # Save LLM-facing memory
         mem["messages"].append({"role": "user", "content": formatted_msg})
@@ -390,14 +408,8 @@ def chat():
         memory_engine.save_memory(mem)
 
         memory_engine.append_transcript(
-            chat_id,
-            "assistant",
-            reply,
-            meta={
-                "mode": mode,
-                "max_tokens": cfg["max_tokens"],
-                "tokens_used": tokens_used,
-            },
+            chat_id, "assistant", reply,
+            meta={"mode": mode, "max_tokens": cfg["max_tokens"], "tokens_used": tokens_used},
         )
 
         if mem["char_count"] > memory_engine.char_limit:
@@ -420,13 +432,7 @@ def chat():
     except Exception as e:
         log(f"❌ AI Core Error: {str(e)}")
         memory_engine.append_transcript(chat_id, "system_event", f"error: {str(e)}")
-        return jsonify(
-            {
-                "parts": [
-                    {"text": "ugh my brain lagged, try again in a sec", "delay_ms": 800}
-                ]
-            }
-        ), 200
+        return jsonify({"parts": [{"text": "ugh my brain lagged, try again in a sec", "delay_ms": 800}]}), 200
 
 
 if __name__ == "__main__":

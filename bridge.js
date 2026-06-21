@@ -66,29 +66,10 @@ client.on('message', async msg => {
         const isGroup = chat.isGroup;
         const displayName = isGroup ? (chat.name || chatId) : senderName;
 
-        let shouldProcess = false;
-        let wasMentioned = false;
-
-        // Group Logic: must be @mentioned OR contain the @think tag
-        if (isGroup) {
-            const botId = client.info.wid._serialized;
-            const mentioned = msg.mentionedIds && msg.mentionedIds.includes(botId);
-            const hasThinkTag = /@think\b/i.test(msg.body || '');
-            if (mentioned || hasThinkTag) {
-                shouldProcess = true;
-                wasMentioned = mentioned;
-                await sendLogToUI(`[BRIDGE] Waking up in group "${chat.name}" (from ${senderName})`);
-            }
-        }
-        // DM Logic: reply to everything (subject to block list, checked below)
-        else {
-            shouldProcess = true;
-        }
-
-        if (!shouldProcess) return;
-
         // Contact gate - block list, also registers/updates this contact
         // in the admin panel's contact list even if it's the first message.
+        // Checked BEFORE the reply-trigger logic so a blocked group/contact
+        // never gets logged or replied to at all.
         let blocked = false;
         try {
             const gateRes = await axios.post(`${WEBUI_API}/api/check-contact`, {
@@ -103,6 +84,70 @@ client.on('message', async msg => {
             await sendLogToUI(`[BRIDGE] Ignored message from blocked contact: ${displayName}`);
             return;
         }
+
+        let shouldReply = false;
+        let wasMentioned = false;
+        let triggerReason = '';
+
+        if (isGroup) {
+   
+         // Pull the live setting from the panel on every message, so a
+            // toggle flip takes effect immediately without restarting the
+            // bridge.
+            let requireMention = true;
+            try {
+                const settingsRes = await axios.get(`${WEBUI_API}/api/settings`);
+                requireMention = settingsRes.data.require_mention_in_groups !== false;
+            } catch (e) { /* fail safe to "required" if panel unreachable */ }
+
+            const botId = client.info.wid._serialized;
+            const mentioned = !!(msg.mentionedIds && msg.mentionedIds.includes(botId));
+            const hasThinkTag = /@think\b/i.test(msg.body || '');
+
+            // "Replied to bot" - someone tapped reply on one of the bot's
+            // own previous messages. Counts as addressing it directly even
+            // with no @mention.
+            let repliedToBot = false;
+            if (msg.hasQuotedMsg) {
+                try {
+                    const quoted = await msg.getQuotedMessage();
+                    repliedToBot = !!(quoted && quoted.fromMe);
+                } catch (e) { /* ignore - treat as not a reply-to-bot */ }
+            }
+
+            if (!requireMention) {
+                // Open-mic mode: bot replies to every message in this group.
+                shouldReply = true;
+                triggerReason = 'open-mic (mention not required)';
+            } else if (mentioned || hasThinkTag || repliedToBot) {
+                shouldReply = true;
+                wasMentioned = mentioned;
+                triggerReason = mentioned ? 'mentioned' : hasThinkTag ? '@think tag' : 'replied to bot';
+            }
+
+            if (shouldReply) {
+                await sendLogToUI(`[BRIDGE] Replying in group "${chat.name}" (${triggerReason}, from ${senderName})`);
+            }
+
+            // Regardless of whether we're replying, log every group message
+            // to that group's memory/transcript so the bot has real context
+            // of the conversation whenever it does speak. This is a
+            // log-only call - it never triggers a reply by itself.
+            try {
+                await axios.post(`${WEBUI_API}/api/log-only`, {
+                    message: msg.body,
+                    chat_id: chatId,
+                    sender_name: senderName,
+                    is_group: true,
+                });
+            } catch (e) { /* non-fatal - context logging is best-effort */ }
+
+        } else {
+            // DM Logic: reply to everything (subject to block list, already checked above)
+            shouldReply = true;
+        }
+
+        if (!shouldReply) return;
 
         // Show typing indicator immediately so there's no dead air while
         // we wait on the LLM call itself.
