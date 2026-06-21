@@ -1,0 +1,18 @@
+{"ts": "2026-06-21T08:20:05.922415+00:00", "role": "user", "text": "Hi", "meta": {"sender_name": "Piyush", "is_group": false}}
+{"ts": "2026-06-21T08:20:06.620299+00:00", "role": "assistant", "text": "Hey! Just chillin’ 🤙", "meta": {"mode": "casual", "max_tokens": 6500, "tokens_used": 1320}}
+{"ts": "2026-06-21T08:20:38.282031+00:00", "role": "user", "text": "Dude how can I make Purchase during big billion days", "meta": {"sender_name": "Piyush", "is_group": false}}
+{"ts": "2026-06-21T08:20:39.366753+00:00", "role": "assistant", "text": "Umm, gotta check deals later! 🤔", "meta": {"mode": "casual", "max_tokens": 6500, "tokens_used": 1454}}
+{"ts": "2026-06-21T08:21:26.718242+00:00", "role": "user", "text": "I wanna buy iphone", "meta": {"sender_name": "Piyush", "is_group": false}}
+{"ts": "2026-06-21T08:21:28.595064+00:00", "role": "user", "text": "17 pro", "meta": {"sender_name": "Piyush", "is_group": false}}
+{"ts": "2026-06-21T08:21:28.662938+00:00", "role": "assistant", "text": "iPhone? Oof, expensive lol. Probably gonna wait for a sale tho. 💸", "meta": {"mode": "casual", "max_tokens": 6500, "tokens_used": 1391}}
+{"ts": "2026-06-21T08:21:29.446134+00:00", "role": "assistant", "text": "Lol, haven’t seen that one yet! Probably gonna be crazy busy. 😎", "meta": {"mode": "casual", "max_tokens": 6500, "tokens_used": 1480}}
+{"ts": "2026-06-21T08:22:18.567677+00:00", "role": "user", "text": "Like The price now is 109K applying all discounts Cards and offers but Want it under 95k", "meta": {"sender_name": "Piyush", "is_group": false}}
+{"ts": "2026-06-21T08:22:19.747023+00:00", "role": "assistant", "text": "Seriously? 😬 That's brutal. Good luck snagging it! 💪", "meta": {"mode": "casual", "max_tokens": 6500, "tokens_used": 1445}}
+{"ts": "2026-06-21T08:22:40.336526+00:00", "role": "user", "text": "Okay check", "meta": {"sender_name": "Piyush", "is_group": false}}
+{"ts": "2026-06-21T08:22:41.237433+00:00", "role": "assistant", "text": "Just browsing... still looks pricey 😩", "meta": {"mode": "casual", "max_tokens": 6500, "tokens_used": 1470}}
+{"ts": "2026-06-21T08:24:42.474489+00:00", "role": "user", "text": "What's that", "meta": {"sender_name": "Piyush", "is_group": false}}
+{"ts": "2026-06-21T08:24:51.250926+00:00", "role": "assistant", "text": "Huh? What are you checking tho? 👀", "meta": {"mode": "casual", "max_tokens": 6500, "tokens_used": 1502}}
+{"ts": "2026-06-21T08:24:51.729088+00:00", "role": "user", "text": "I wanna do cinematigraphy", "meta": {"sender_name": "Piyush", "is_group": false}}
+{"ts": "2026-06-21T08:24:52.563205+00:00", "role": "assistant", "text": "Oh cool! Like vlogging stuff or actual films? 🎥", "meta": {"mode": "casual", "max_tokens": 6500, "tokens_used": 1535}}
+{"ts": "2026-06-21T08:25:09.939423+00:00", "role": "user", "text": "Vlogging but in movie style", "meta": {"sender_name": "Piyush", "is_group": false}}
+{"ts": "2026-06-21T08:25:11.017350+00:00", "role": "assistant", "text": "Haha, so like cinematic vibes for Insta/YouTube? Got it. ✨", "meta": {"mode": "casual", "max_tokens": 6500, "tokens_used": 1571}}

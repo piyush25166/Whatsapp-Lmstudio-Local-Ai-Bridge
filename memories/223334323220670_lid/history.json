@@ -1,0 +1,42 @@
+[
+  {
+    "role": "user",
+    "content": "[Anurag Jha]: .."
+  },
+  {
+    "role": "assistant",
+    "content": "Hey! What\u2019s up? \ud83d\ude04"
+  },
+  {
+    "role": "user",
+    "content": "[Anurag Jha]: Good"
+  },
+  {
+    "role": "assistant",
+    "content": "Just chillin\u2019, why? \ud83e\udd14"
+  },
+  {
+    "role": "user",
+    "content": "[Anurag Jha]: What about you"
+  },
+  {
+    "role": "assistant",
+    "content": "Probably just chilling, why? \ud83d\ude02"
+  },
+  {
+    "role": "user",
+    "content": "[Anurag Jha]: Nothing"
+  },
+  {
+    "role": "assistant",
+    "content": "Aight cool. \ud83d\udc4d"
+  },
+  {
+    "role": "user",
+    "content": "[Anurag Jha]: Cool"
+  },
+  {
+    "role": "assistant",
+    "content": "lol dunno. \ud83e\udd37\u200d\u2642\ufe0f"
+  }
+]

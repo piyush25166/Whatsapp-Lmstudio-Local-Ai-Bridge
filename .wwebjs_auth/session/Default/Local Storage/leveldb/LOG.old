@@ -1,3 +1,12 @@
-2026/06/21-12:58:01.073 5ac4 Reusing MANIFEST D:\AI AGENTS\Utitlites\Messaging\WHatsapp\Whatsapp_Lmstudio_Automation\.wwebjs_auth\session\Default\Local Storage\leveldb/MANIFEST-000001
-2026/06/21-12:58:01.078 5ac4 Recovering log #3
-2026/06/21-12:58:01.079 5ac4 Reusing old log D:\AI AGENTS\Utitlites\Messaging\WHatsapp\Whatsapp_Lmstudio_Automation\.wwebjs_auth\session\Default\Local Storage\leveldb/000003.log 
+2026/06/21-13:29:57.494 18f8 Reusing MANIFEST D:\AI AGENTS\Utitlites\Messaging\WHatsapp\Whatsapp_Lmstudio_Automation\.wwebjs_auth\session\Default\Local Storage\leveldb/MANIFEST-000001
+2026/06/21-13:29:57.497 18f8 Recovering log #4
+2026/06/21-13:29:57.498 18f8 Reusing old log D:\AI AGENTS\Utitlites\Messaging\WHatsapp\Whatsapp_Lmstudio_Automation\.wwebjs_auth\session\Default\Local Storage\leveldb/000004.log 
+2026/06/21-14:20:13.330 18f8 Level-0 table #8: started
+2026/06/21-14:20:13.335 18f8 Level-0 table #8: 14762 bytes OK
+2026/06/21-14:20:13.337 18f8 Delete type=0 #4
+2026/06/21-14:46:23.321 3cbc Level-0 table #10: started
+2026/06/21-14:46:23.325 3cbc Level-0 table #10: 15851 bytes OK
+2026/06/21-14:46:23.326 3cbc Delete type=0 #7
+2026/06/21-21:35:04.208 3cbc Level-0 table #12: started
+2026/06/21-21:35:04.213 3cbc Level-0 table #12: 15071 bytes OK
+2026/06/21-21:35:04.214 3cbc Delete type=0 #9

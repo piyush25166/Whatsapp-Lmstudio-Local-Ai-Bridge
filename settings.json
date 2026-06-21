@@ -1,0 +1,14 @@
+{
+  "internet_enabled": false,
+  "bot_enabled": true,
+  "casual_max_tokens": 500,
+  "thinking_max_tokens": 2000,
+  "casual_temperature": 0.8,
+  "thinking_temperature": 0.6,
+  "thinking_trigger_tag": "@think",
+  "pacing_strategy": "both",
+  "typing_cps": 14,
+  "max_chunks": 4,
+  "selected_model": "gemma-4-e4b-it",
+  "memory_char_limit": 20000
+}

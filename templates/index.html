@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS | Admin Dashboard</title>
+    <title>NEXUS | Admin Console</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
@@ -13,7 +13,7 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: { 500: '#6366f1', 600: '#4f46e5', 900: '#312e81' },
+                        brand: { 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 900: '#312e81' },
                         dark: { 800: '#121214', 900: '#09090b', 950: '#050505' }
                     }
                 }
@@ -25,289 +25,548 @@
         body { font-family: 'Inter', sans-serif; background-color: #050505; color: #e5e5e5; }
         .glass { background: rgba(18, 18, 20, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
         .terminal { font-family: 'JetBrains Mono', monospace; background: #000; box-shadow: inset 0 0 30px rgba(0,0,0,0.8); }
-        .tab-content { display: none; animation: fadeIn 0.3s ease-out forwards; }
+        .tab-content { display: none; animation: fadeIn 0.2s ease-out forwards; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        .nav-item.active { background: rgba(99,102,241,0.12); color: #818cf8; border-left-color: #6366f1; }
+        .toggle-track { transition: background 0.2s; }
+        .toggle-thumb { transition: transform 0.2s; }
+        .toggle-on .toggle-track { background: #4f46e5; }
+        .toggle-on .toggle-thumb { transform: translateX(16px); }
+        .bubble-user { background: #1f1f23; }
+        .bubble-bot { background: #312e81; }
+        .pill { font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+        input[type=range] { -webkit-appearance: none; height: 4px; background: #27272a; border-radius: 2px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #6366f1; cursor: pointer; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-sm">
 
     <!-- Sidebar -->
-    <aside class="w-64 glass border-r border-white/5 flex flex-col">
-        <div class="p-6 flex items-center gap-3 border-b border-white/5">
+    <aside class="w-60 glass border-r border-white/5 flex flex-col shrink-0">
+        <div class="p-5 flex items-center gap-3 border-b border-white/5">
             <div class="w-8 h-8 rounded bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
-                <i class="ph-bold ph-hexagon text-white text-xl"></i>
+                <i class="ph-bold ph-hexagon text-white text-lg"></i>
             </div>
             <div>
-                <h1 class="font-bold text-white tracking-wide">NEXUS CORE</h1>
-                <p class="text-xs text-gray-500">v3.0.0 Architecture</p>
+                <h1 class="font-bold text-white tracking-wide text-sm">NEXUS CORE</h1>
+                <p class="text-[11px] text-gray-500">Admin Console</p>
             </div>
         </div>
 
-        <nav class="flex-1 p-4 space-y-1">
-            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all bg-white/5 text-white">
-                <i class="ph ph-squares-four text-lg"></i> Dashboard
+        <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+            <button class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 rounded-r-md border-l-2 border-transparent text-gray-400 hover:text-white text-left" data-tab="dashboard">
+                <i class="ph-bold ph-gauge text-base"></i> Dashboard
             </button>
-            <button onclick="switchTab('memory')" id="btn-memory" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                <i class="ph ph-brain text-lg"></i> Memory Vault
+            <button class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-r-md border-l-2 border-transparent text-gray-400 hover:text-white text-left" data-tab="chats">
+                <i class="ph-bold ph-chats-circle text-base"></i> Live Chats
             </button>
-            <button onclick="switchTab('settings')" id="btn-settings" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                <i class="ph ph-sliders-horizontal text-lg"></i> Engine Settings
+            <button class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-r-md border-l-2 border-transparent text-gray-400 hover:text-white text-left" data-tab="contacts">
+                <i class="ph-bold ph-users-three text-base"></i> Contacts &amp; Groups
+            </button>
+            <button class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-r-md border-l-2 border-transparent text-gray-400 hover:text-white text-left" data-tab="settings">
+                <i class="ph-bold ph-sliders text-base"></i> Behavior &amp; Tokens
+            </button>
+            <button class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-r-md border-l-2 border-transparent text-gray-400 hover:text-white text-left" data-tab="logs">
+                <i class="ph-bold ph-terminal-window text-base"></i> System Logs
             </button>
         </nav>
 
-        <div class="p-4 border-t border-white/5">
-            <div class="flex items-center justify-between text-xs text-gray-500">
-                <span>System Status</span>
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Online</span>
+        <div class="p-4 border-t border-white/5 space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-400">Bot Master Switch</span>
+                <button id="botToggle" class="toggle relative w-9 h-5 rounded-full toggle-track shrink-0" style="background:#27272a">
+                    <span class="toggle-thumb absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white"></span>
+                </button>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+                <span id="waStatusDot" class="w-2 h-2 rounded-full bg-gray-600"></span>
+                <span id="waStatusText" class="text-gray-400">WhatsApp: Checking...</span>
             </div>
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="flex-1 h-full overflow-y-auto p-8 relative">
-        <div class="absolute top-0 left-0 w-full h-96 bg-brand-900/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+    <!-- Main -->
+    <main class="flex-1 overflow-y-auto p-6">
 
         <!-- DASHBOARD TAB -->
-        <div id="dashboard" class="tab-content active max-w-6xl mx-auto space-y-6">
-            <h2 class="text-2xl font-bold text-white mb-6">Overview</h2>
-            
-            <!-- Stats Row -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="glass p-5 rounded-xl border-l-2 border-brand-500">
-                    <p class="text-gray-400 mb-1 flex items-center gap-2"><i class="ph ph-chat-circle"></i> Messages Processed</p>
-                    <h3 class="text-3xl font-light text-white" id="stat-msgs">0</h3>
+        <section class="tab-content active" id="tab-dashboard">
+            <h2 class="text-xl font-bold text-white mb-1">Dashboard</h2>
+            <p class="text-gray-500 text-xs mb-6">Real-time overview of the clone's activity.</p>
+
+            <div class="grid grid-cols-4 gap-4 mb-6">
+                <div class="glass rounded-xl p-4">
+                    <p class="text-xs text-gray-500 mb-1">Messages Processed</p>
+                    <p id="statMsgs" class="text-2xl font-bold text-white">0</p>
                 </div>
-                <div class="glass p-5 rounded-xl border-l-2 border-purple-500">
-                    <p class="text-gray-400 mb-1 flex items-center gap-2"><i class="ph ph-users"></i> Active Contexts</p>
-                    <h3 class="text-3xl font-light text-white" id="stat-chats">0</h3>
+                <div class="glass rounded-xl p-4">
+                    <p class="text-xs text-gray-500 mb-1">Active Chats</p>
+                    <p id="statChats" class="text-2xl font-bold text-white">0</p>
                 </div>
-                <div class="glass p-5 rounded-xl border-l-2 border-green-500">
-                    <p class="text-gray-400 mb-1 flex items-center gap-2"><i class="ph ph-cpu"></i> LM Engine Port</p>
-                    <h3 class="text-3xl font-light text-white" id="stat-lm">Checking...</h3>
+                <div class="glass rounded-xl p-4">
+                    <p class="text-xs text-gray-500 mb-1">LM Studio</p>
+                    <p id="statLM" class="text-2xl font-bold">—</p>
+                </div>
+                <div class="glass rounded-xl p-4">
+                    <p class="text-xs text-gray-500 mb-1">Internet Access</p>
+                    <button id="internetToggleBtn" class="toggle relative w-9 h-5 rounded-full toggle-track mt-1" style="background:#27272a">
+                        <span class="toggle-thumb absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white"></span>
+                    </button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- QR/WhatsApp Node -->
-                <div class="glass p-6 rounded-xl flex flex-col items-center justify-center min-h-[300px] relative overflow-hidden">
-                    <div class="absolute top-4 left-4 flex items-center gap-2">
-                        <i class="ph-fill ph-whatsapp-logo text-green-500 text-xl"></i>
-                        <span class="font-semibold text-white">Bridge</span>
-                    </div>
-                    <span id="wa-badge" class="absolute top-4 right-4 px-2 py-1 rounded text-[10px] font-bold tracking-wider bg-red-500/20 text-red-500">OFFLINE</span>
-                    
-                    <div id="qr-view" class="hidden flex-col items-center mt-6">
-                        <div class="p-2 bg-white rounded-lg shadow-xl shadow-brand-500/10 mb-4"><canvas id="qrcode"></canvas></div>
-                        <p class="text-gray-400 text-center">Scan to inject pairing token</p>
-                    </div>
-                    
-                    <div id="connected-view" class="text-center mt-6 hidden">
-                        <div class="w-20 h-20 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-4">
-                            <i class="ph ph-shield-check text-4xl text-green-500"></i>
-                        </div>
-                        <h4 class="text-lg font-medium text-white">Session Secure</h4>
-                        <p class="text-gray-500 mt-1">Intercepting traffic routing...</p>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass rounded-xl p-5">
+                    <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2"><i class="ph-bold ph-qr-code text-brand-400"></i> WhatsApp Link</h3>
+                    <div id="qrContainer" class="flex items-center justify-center bg-white rounded-lg p-3 min-h-[180px]">
+                        <p class="text-gray-400 text-xs" id="qrPlaceholder">No QR pending. Bridge connected or not yet started.</p>
                     </div>
                 </div>
-
-                <!-- Live Terminal -->
-                <div class="glass rounded-xl lg:col-span-2 flex flex-col overflow-hidden border border-white/5">
-                    <div class="bg-white/5 px-4 py-3 border-b border-white/5 flex items-center justify-between">
-                        <span class="font-semibold text-gray-300 flex items-center gap-2"><i class="ph ph-terminal-window"></i> Live Telemetry</span>
-                    </div>
-                    <div id="log-box" class="terminal flex-1 p-4 overflow-y-auto text-green-400 leading-relaxed max-h-[260px]">
-                        <!-- Logs inject here -->
-                    </div>
+                <div class="glass rounded-xl p-5">
+                    <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2"><i class="ph-bold ph-cpu text-brand-400"></i> Inference Core</h3>
+                    <label class="text-xs text-gray-500">Active model</label>
+                    <select id="modelSelect" class="w-full mt-1 bg-dark-900 border border-white/10 rounded-md px-3 py-2 text-sm text-white"></select>
+                    <p class="text-[11px] text-gray-600 mt-2">Pulled live from LM Studio's <code>/v1/models</code> endpoint.</p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- MEMORY VAULT TAB -->
-        <div id="memory" class="tab-content max-w-6xl mx-auto">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-white">Memory Vault</h2>
-                <p class="text-gray-400">Persistent Vector Storage Maps</p>
+        <!-- LIVE CHATS TAB -->
+        <section class="tab-content" id="tab-chats">
+            <h2 class="text-xl font-bold text-white mb-1">Live Chats</h2>
+            <p class="text-gray-500 text-xs mb-6">Full transcripts — what they said, what the clone said. Nothing is hidden from you.</p>
+
+            <div class="grid grid-cols-3 gap-4" style="height: calc(100vh - 160px);">
+                <div class="glass rounded-xl overflow-y-auto p-2" id="chatList"></div>
+                <div class="col-span-2 glass rounded-xl flex flex-col overflow-hidden">
+                    <div class="p-4 border-b border-white/5 flex items-center justify-between">
+                        <h3 id="chatTitle" class="text-sm font-semibold text-white">Select a chat</h3>
+                        <button id="refreshTranscriptBtn" class="text-gray-500 hover:text-white"><i class="ph-bold ph-arrows-clockwise"></i></button>
+                    </div>
+                    <div id="transcriptView" class="flex-1 overflow-y-auto p-4 space-y-3 terminal text-xs"></div>
+                </div>
             </div>
-            
+        </section>
+
+        <!-- CONTACTS TAB -->
+        <section class="tab-content" id="tab-contacts">
+            <h2 class="text-xl font-bold text-white mb-1">Contacts &amp; Groups</h2>
+            <p class="text-gray-500 text-xs mb-6">Block, override mode, or leave notes per contact/group.</p>
+
             <div class="glass rounded-xl overflow-hidden">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-white/5 border-b border-white/5 text-gray-400 uppercase text-[10px] tracking-wider">
-                            <th class="p-4">Entity / ID</th>
-                            <th class="p-4">Stored Messages</th>
-                            <th class="p-4">System Actions</th>
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-white/5 text-gray-400">
+                        <tr>
+                            <th class="px-4 py-3">Name</th>
+                            <th class="px-4 py-3">Type</th>
+                            <th class="px-4 py-3">Msgs</th>
+                            <th class="px-4 py-3">Status</th>
+                            <th class="px-4 py-3">Mode Override</th>
+                            <th class="px-4 py-3">Notes</th>
+                            <th class="px-4 py-3"></th>
                         </tr>
                     </thead>
-                    <tbody id="memory-list" class="divide-y divide-white/5">
-                        <tr><td colspan="3" class="p-8 text-center text-gray-500">Loading neural networks...</td></tr>
-                    </tbody>
+                    <tbody id="contactsTableBody"></tbody>
                 </table>
+                <p id="contactsEmpty" class="text-gray-500 text-xs p-6 text-center hidden">No contacts yet — they'll appear here once someone messages the bot.</p>
             </div>
-        </div>
+        </section>
 
         <!-- SETTINGS TAB -->
-        <div id="settings" class="tab-content max-w-6xl mx-auto space-y-6">
-            <h2 class="text-2xl font-bold text-white mb-6">Engine Configuration</h2>
+        <section class="tab-content" id="tab-settings">
+            <h2 class="text-xl font-bold text-white mb-1">Behavior &amp; Tokens</h2>
+            <p class="text-gray-500 text-xs mb-6">Control exactly how much the clone is allowed to type, and how human the pacing feels.</p>
 
-            <div class="glass p-6 rounded-xl border border-white/5 max-w-2xl">
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-gray-400 mb-2 font-medium">Local Language Model</label>
-                        <select id="model-select" onchange="changeModel(this.value)" class="w-full bg-dark-900 border border-white/10 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
-                            <option>Awaiting Engine Boot...</option>
-                        </select>
-                        <p class="text-[11px] text-gray-500 mt-2">Sourced dynamically from LM Studio Local Server (Port 1234).</p>
-                    </div>
+            <div class="grid grid-cols-2 gap-5">
+                <!-- Casual mode -->
+                <div class="glass rounded-xl p-5">
+                    <h3 class="text-sm font-semibold text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-chat-circle-dots text-emerald-400"></i> Casual Mode</h3>
+                    <p class="text-[11px] text-gray-500 mb-4">Default for every DM and group reply. Keep this cheap.</p>
 
-                    <div class="pt-6 border-t border-white/5 flex items-center justify-between">
+                    <label class="text-xs text-gray-400 flex justify-between mb-1">
+                        Max tokens per reply <span id="casualTokensVal" class="text-white font-mono">120</span>
+                    </label>
+                    <input type="range" id="casualTokens" min="20" max="500" step="10" class="w-full mb-4">
+
+                    <label class="text-xs text-gray-400 flex justify-between mb-1">
+                        Temperature <span id="casualTempVal" class="text-white font-mono">0.8</span>
+                    </label>
+                    <input type="range" id="casualTemp" min="0" max="1.2" step="0.05" class="w-full">
+                </div>
+
+                <!-- Thinking mode -->
+                <div class="glass rounded-xl p-5">
+                    <h3 class="text-sm font-semibold text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-brain text-brand-400"></i> Thinking Mode</h3>
+                    <p class="text-[11px] text-gray-500 mb-4">Triggered by the <code class="text-brand-400">@think</code> tag, or a per-contact override below.</p>
+
+                    <label class="text-xs text-gray-400 flex justify-between mb-1">
+                        Max tokens per reply <span id="thinkTokensVal" class="text-white font-mono">700</span>
+                    </label>
+                    <input type="range" id="thinkTokens" min="100" max="2000" step="50" class="w-full mb-4">
+
+                    <label class="text-xs text-gray-400 flex justify-between mb-1">
+                        Temperature <span id="thinkTempVal" class="text-white font-mono">0.6</span>
+                    </label>
+                    <input type="range" id="thinkTemp" min="0" max="1.2" step="0.05" class="w-full">
+
+                    <label class="text-xs text-gray-400 block mt-4 mb-1">Trigger tag</label>
+                    <input type="text" id="thinkTag" class="w-full bg-dark-900 border border-white/10 rounded-md px-3 py-2 text-sm text-white font-mono" value="@think">
+                </div>
+
+                <!-- Humanizer -->
+                <div class="glass rounded-xl p-5 col-span-2">
+                    <h3 class="text-sm font-semibold text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-hand-tap text-amber-400"></i> Human Typing Replication</h3>
+                    <p class="text-[11px] text-gray-500 mb-4">Controls how replies are paced so they don't dump instantly.</p>
+
+                    <div class="grid grid-cols-3 gap-4">
                         <div>
-                            <h4 class="text-white font-medium flex items-center gap-2"><i class="ph-bold ph-globe text-brand-500"></i> Live Web Scraper</h4>
-                            <p class="text-xs text-gray-500 mt-1">Allows the AI to silently search DuckDuckGo for live facts.</p>
+                            <label class="text-xs text-gray-400 block mb-1">Pacing strategy</label>
+                            <select id="pacingStrategy" class="w-full bg-dark-900 border border-white/10 rounded-md px-3 py-2 text-sm text-white">
+                                <option value="delay">Delay only (single message)</option>
+                                <option value="chunked">Chunked (multi-bubble)</option>
+                                <option value="both">Both (recommended)</option>
+                            </select>
                         </div>
-                        <button id="net-toggle" onclick="toggleNet()" class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-700 transition-colors focus:outline-none">
-                            <span id="net-knob" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
-                        </button>
+                        <div>
+                            <label class="text-xs text-gray-400 flex justify-between mb-1">
+                                Typing speed (chars/sec) <span id="cpsVal" class="text-white font-mono">14</span>
+                            </label>
+                            <input type="range" id="cps" min="4" max="40" step="1" class="w-full mt-2">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 flex justify-between mb-1">
+                                Max bubbles per reply <span id="chunksVal" class="text-white font-mono">4</span>
+                            </label>
+                            <input type="range" id="maxChunks" min="1" max="6" step="1" class="w-full mt-2">
+                        </div>
                     </div>
                 </div>
+
+                <!-- Memory -->
+                <div class="glass rounded-xl p-5 col-span-2">
+                    <h3 class="text-sm font-semibold text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-database text-pink-400"></i> Memory</h3>
+                    <p class="text-[11px] text-gray-500 mb-4">When a chat's stored history exceeds this many characters, it's auto-compressed into a summary to keep context tight.</p>
+                    <label class="text-xs text-gray-400 flex justify-between mb-1">
+                        Compression threshold (chars) <span id="memLimitVal" class="text-white font-mono">6000</span>
+                    </label>
+                    <input type="range" id="memLimit" min="1000" max="20000" step="500" class="w-full">
+                </div>
             </div>
-        </div>
+
+            <div class="flex gap-3 mt-6">
+                <button id="saveSettingsBtn" class="bg-brand-600 hover:bg-brand-500 text-white px-5 py-2.5 rounded-md text-sm font-medium flex items-center gap-2">
+                    <i class="ph-bold ph-check"></i> Save Settings
+                </button>
+                <button id="resetSettingsBtn" class="bg-white/5 hover:bg-white/10 text-gray-300 px-5 py-2.5 rounded-md text-sm font-medium">
+                    Reset to Defaults
+                </button>
+                <span id="saveConfirm" class="text-emerald-400 text-xs self-center opacity-0 transition-opacity">Saved ✓</span>
+            </div>
+        </section>
+
+        <!-- LOGS TAB -->
+        <section class="tab-content" id="tab-logs">
+            <h2 class="text-xl font-bold text-white mb-1">System Logs</h2>
+            <p class="text-gray-500 text-xs mb-6">Raw bridge + backend event stream.</p>
+            <div id="logTerminal" class="terminal rounded-xl p-4 h-[calc(100vh-200px)] overflow-y-auto text-xs font-mono space-y-1"></div>
+        </section>
+
     </main>
 
     <script>
-        let currentModel = "";
-        let netEnabled = false;
+        const API = "";
+        let currentChatId = null;
+        let allContacts = [];
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            
-            document.querySelectorAll('aside nav button').forEach(b => {
-                b.classList.remove('bg-white/5', 'text-white');
-                b.classList.add('text-gray-400');
+        // ---------- Tab nav ----------
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+                if (btn.dataset.tab === 'contacts') loadContacts();
+                if (btn.dataset.tab === 'logs') loadLogs();
             });
-            const btn = document.getElementById(`btn-${tabId}`);
-            btn.classList.remove('text-gray-400');
-            btn.classList.add('bg-white/5', 'text-white');
+        });
 
-            if(tabId === 'memory') loadMemories();
+        // ---------- Toggle helper ----------
+        function setToggleVisual(el, on) {
+            el.classList.toggle('toggle-on', on);
+            el.style.background = on ? '#4f46e5' : '#27272a';
         }
 
-        async function changeModel(modelName) {
-            await fetch('/api/select-model', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ model: modelName }) });
+        // ---------- State polling ----------
+        async function refreshState() {
+            try {
+                const res = await fetch(`${API}/api/state`);
+                const data = await res.json();
+
+                document.getElementById('statMsgs').textContent = data.total_messages_processed ?? 0;
+                document.getElementById('statChats').textContent = data.active_chats ?? 0;
+
+                const lmEl = document.getElementById('statLM');
+                lmEl.textContent = data.lm_studio_connected ? 'Online' : 'Offline';
+                lmEl.className = 'text-2xl font-bold ' + (data.lm_studio_connected ? 'text-emerald-400' : 'text-red-400');
+
+                const waDot = document.getElementById('waStatusDot');
+                const waText = document.getElementById('waStatusText');
+                waText.textContent = 'WhatsApp: ' + data.whatsapp_status;
+                waDot.className = 'w-2 h-2 rounded-full ' + (data.whatsapp_status === 'Connected' ? 'bg-emerald-400' : data.whatsapp_status === 'Waiting' ? 'bg-amber-400' : 'bg-gray-600');
+
+                // QR
+                const qrContainer = document.getElementById('qrContainer');
+                if (data.qr_data) {
+                    qrContainer.innerHTML = '<canvas id="qrCanvas"></canvas>';
+                    QRCode.toCanvas(document.getElementById('qrCanvas'), data.qr_data, { width: 200 });
+                } else if (data.whatsapp_status !== 'Connected') {
+                    qrContainer.innerHTML = '<p class="text-gray-400 text-xs">Waiting for bridge to start...</p>';
+                } else {
+                    qrContainer.innerHTML = '<p class="text-emerald-600 text-xs flex items-center gap-2"><i class="ph-bold ph-check-circle text-lg"></i> Connected</p>';
+                }
+
+                // Model select
+                const modelSelect = document.getElementById('modelSelect');
+                const currentModels = Array.from(modelSelect.options).map(o => o.value);
+                const incoming = data.available_models || [];
+                if (JSON.stringify(currentModels) !== JSON.stringify(incoming)) {
+                    modelSelect.innerHTML = incoming.map(m => `<option value="${m}">${m}</option>`).join('') || '<option>No models found</option>';
+                }
+                if (data.settings && data.settings.selected_model) {
+                    modelSelect.value = data.settings.selected_model;
+                }
+
+                // Toggles
+                setToggleVisual(document.getElementById('botToggle'), data.settings.bot_enabled);
+                setToggleVisual(document.getElementById('internetToggleBtn'), data.settings.internet_enabled);
+
+                // Settings sliders (only set once on load to avoid fighting user drag)
+                if (!window.__settingsLoaded) {
+                    applySettingsToForm(data.settings);
+                    window.__settingsLoaded = true;
+                }
+
+            } catch (e) { console.error('state refresh failed', e); }
         }
 
-        async function toggleNet() {
-            const res = await fetch('/api/toggle-internet', { method: 'POST' });
-            const data = await res.json();
-            updateNetUI(data.state);
+        function applySettingsToForm(s) {
+            document.getElementById('casualTokens').value = s.casual_max_tokens;
+            document.getElementById('casualTokensVal').textContent = s.casual_max_tokens;
+            document.getElementById('casualTemp').value = s.casual_temperature;
+            document.getElementById('casualTempVal').textContent = s.casual_temperature;
+
+            document.getElementById('thinkTokens').value = s.thinking_max_tokens;
+            document.getElementById('thinkTokensVal').textContent = s.thinking_max_tokens;
+            document.getElementById('thinkTemp').value = s.thinking_temperature;
+            document.getElementById('thinkTempVal').textContent = s.thinking_temperature;
+            document.getElementById('thinkTag').value = s.thinking_trigger_tag;
+
+            document.getElementById('pacingStrategy').value = s.pacing_strategy;
+            document.getElementById('cps').value = s.typing_cps;
+            document.getElementById('cpsVal').textContent = s.typing_cps;
+            document.getElementById('maxChunks').value = s.max_chunks;
+            document.getElementById('chunksVal').textContent = s.max_chunks;
+
+            document.getElementById('memLimit').value = s.memory_char_limit;
+            document.getElementById('memLimitVal').textContent = s.memory_char_limit;
         }
 
-        function updateNetUI(state) {
-            netEnabled = state;
-            const toggle = document.getElementById('net-toggle');
-            const knob = document.getElementById('net-knob');
-            if(state) {
-                toggle.classList.replace('bg-gray-700', 'bg-brand-600');
-                knob.classList.replace('translate-x-1', 'translate-x-6');
-            } else {
-                toggle.classList.replace('bg-brand-600', 'bg-gray-700');
-                knob.classList.replace('translate-x-6', 'translate-x-1');
+        // live label updates while dragging
+        [['casualTokens','casualTokensVal'],['casualTemp','casualTempVal'],['thinkTokens','thinkTokensVal'],
+         ['thinkTemp','thinkTempVal'],['cps','cpsVal'],['maxChunks','chunksVal'],['memLimit','memLimitVal']]
+        .forEach(([inputId, labelId]) => {
+            document.getElementById(inputId).addEventListener('input', e => {
+                document.getElementById(labelId).textContent = e.target.value;
+            });
+        });
+
+        document.getElementById('modelSelect').addEventListener('change', async (e) => {
+            await fetch(`${API}/api/select-model`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ model: e.target.value }) });
+        });
+
+        document.getElementById('botToggle').addEventListener('click', async () => {
+            await fetch(`${API}/api/toggle-bot`, { method: 'POST' });
+            refreshState();
+        });
+        document.getElementById('internetToggleBtn').addEventListener('click', async () => {
+            await fetch(`${API}/api/toggle-internet`, { method: 'POST' });
+            refreshState();
+        });
+
+        document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+            const payload = {
+                casual_max_tokens: parseInt(document.getElementById('casualTokens').value),
+                casual_temperature: parseFloat(document.getElementById('casualTemp').value),
+                thinking_max_tokens: parseInt(document.getElementById('thinkTokens').value),
+                thinking_temperature: parseFloat(document.getElementById('thinkTemp').value),
+                thinking_trigger_tag: document.getElementById('thinkTag').value,
+                pacing_strategy: document.getElementById('pacingStrategy').value,
+                typing_cps: parseInt(document.getElementById('cps').value),
+                max_chunks: parseInt(document.getElementById('maxChunks').value),
+                memory_char_limit: parseInt(document.getElementById('memLimit').value),
+            };
+            await fetch(`${API}/api/settings`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+            const confirmEl = document.getElementById('saveConfirm');
+            confirmEl.style.opacity = 1;
+            setTimeout(() => confirmEl.style.opacity = 0, 1800);
+        });
+
+        document.getElementById('resetSettingsBtn').addEventListener('click', async () => {
+            const res = await fetch(`${API}/api/settings/reset`, { method: 'POST' });
+            const s = await res.json();
+            applySettingsToForm(s);
+        });
+
+        // ---------- Contacts ----------
+        async function loadContacts() {
+            const res = await fetch(`${API}/api/contacts`);
+            allContacts = await res.json();
+            renderContacts();
+        }
+
+        function renderContacts() {
+            const body = document.getElementById('contactsTableBody');
+            const empty = document.getElementById('contactsEmpty');
+            if (!allContacts.length) {
+                body.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
             }
+            empty.classList.add('hidden');
+            body.innerHTML = allContacts.map(c => `
+                <tr class="border-t border-white/5 hover:bg-white/[0.02]" data-id="${escapeAttr(c.chat_id)}">
+                    <td class="px-4 py-3 text-white">${escapeHtml(c.display_name)}</td>
+                    <td class="px-4 py-3"><span class="pill ${c.is_group ? 'bg-indigo-500/20 text-indigo-300' : 'bg-gray-500/20 text-gray-300'}">${c.is_group ? 'Group' : 'DM'}</span></td>
+                    <td class="px-4 py-3 text-gray-400">${c.message_count}</td>
+                    <td class="px-4 py-3">
+                        <select class="status-select bg-dark-900 border border-white/10 rounded px-2 py-1 text-xs ${c.status === 'blocked' ? 'text-red-400' : 'text-emerald-400'}">
+                            <option value="allowed" ${c.status === 'allowed' ? 'selected' : ''}>Allowed</option>
+                            <option value="blocked" ${c.status === 'blocked' ? 'selected' : ''}>Blocked</option>
+                        </select>
+                    </td>
+                    <td class="px-4 py-3">
+                        <select class="mode-select bg-dark-900 border border-white/10 rounded px-2 py-1 text-xs text-gray-300">
+                            <option value="auto" ${!c.mode_override ? 'selected' : ''}>Auto</option>
+                            <option value="casual" ${c.mode_override === 'casual' ? 'selected' : ''}>Force Casual</option>
+                            <option value="thinking" ${c.mode_override === 'thinking' ? 'selected' : ''}>Force Thinking</option>
+                        </select>
+                    </td>
+                    <td class="px-4 py-3">
+                        <input type="text" class="notes-input bg-dark-900 border border-white/10 rounded px-2 py-1 text-xs text-gray-300 w-40" placeholder="e.g. my boss, stay formal" value="${escapeAttr(c.notes || '')}">
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <button class="delete-contact-btn text-gray-500 hover:text-red-400"><i class="ph-bold ph-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+
+            body.querySelectorAll('tr').forEach(row => {
+                const chatId = row.dataset.id;
+                row.querySelector('.status-select').addEventListener('change', async (e) => {
+                    await fetch(`${API}/api/contacts/${encodeURIComponent(chatId)}/status`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: e.target.value }) });
+                });
+                row.querySelector('.mode-select').addEventListener('change', async (e) => {
+                    await fetch(`${API}/api/contacts/${encodeURIComponent(chatId)}/mode`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ mode: e.target.value }) });
+                });
+                let notesTimer;
+                row.querySelector('.notes-input').addEventListener('input', (e) => {
+                    clearTimeout(notesTimer);
+                    notesTimer = setTimeout(async () => {
+                        await fetch(`${API}/api/contacts/${encodeURIComponent(chatId)}/notes`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ notes: e.target.value }) });
+                    }, 600);
+                });
+                row.querySelector('.delete-contact-btn').addEventListener('click', async () => {
+                    if (!confirm('Remove this contact record? (Their chat memory is untouched, only the panel record is deleted.)')) return;
+                    await fetch(`${API}/api/contacts/${encodeURIComponent(chatId)}`, { method: 'DELETE' });
+                    loadContacts();
+                });
+            });
         }
 
-        async function clearMemory(id) {
-            if(!confirm(`Erase all memory for ${id}?`)) return;
-            await fetch('/api/clear-memory', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id }) });
-            loadMemories();
+        // ---------- Live Chats ----------
+        async function loadChatList() {
+            const res = await fetch(`${API}/api/contacts`);
+            const list = await res.json();
+            const container = document.getElementById('chatList');
+            if (!list.length) {
+                container.innerHTML = '<p class="text-gray-500 text-xs p-4">No chats yet.</p>';
+                return;
+            }
+            container.innerHTML = list.map(c => `
+                <button class="chat-list-item w-full text-left px-3 py-2.5 rounded-md hover:bg-white/5 flex items-center gap-2 ${c.chat_id === currentChatId ? 'bg-white/5' : ''}" data-id="${escapeAttr(c.chat_id)}">
+                    <i class="ph-bold ${c.is_group ? 'ph-users-three' : 'ph-user'} text-gray-500"></i>
+                    <span class="flex-1 truncate text-gray-200">${escapeHtml(c.display_name)}</span>
+                    ${c.status === 'blocked' ? '<span class="pill bg-red-500/20 text-red-400">blocked</span>' : ''}
+                </button>
+            `).join('');
+            container.querySelectorAll('.chat-list-item').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentChatId = btn.dataset.id;
+                    document.getElementById('chatTitle').textContent = btn.textContent.trim();
+                    loadTranscript();
+                    loadChatList();
+                });
+            });
         }
 
-        async function loadMemories() {
-            try {
-                const res = await fetch('/api/memories');
-                const data = await res.json();
-                const tbody = document.getElementById('memory-list');
-                if(data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-gray-500">No memories recorded yet.</td></tr>`;
-                    return;
-                }
-                tbody.innerHTML = data.map(m => `
-                    <tr class="hover:bg-white/[0.02] transition-colors">
-                        <td class="p-4 font-mono text-gray-300 flex items-center gap-3">
-                            <i class="ph-fill ${m.id.includes('g_us') ? 'ph-users-three text-purple-400' : 'ph-user text-brand-400'} text-lg"></i>
-                            ${m.id}
-                        </td>
-                        <td class="p-4 text-gray-400">${m.message_count} blocks</td>
-                        <td class="p-4">
-                            <button onclick="clearMemory('${m.id}')" class="px-3 py-1.5 rounded bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-medium transition-colors border border-red-500/20">Wipe Data</button>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch(e) {}
-        }
-
-        async function pollState() {
-            try {
-                const res = await fetch('/api/state');
-                const data = await res.json();
-
-                // Stats
-                document.getElementById('stat-msgs').innerText = data.total_messages_processed;
-                document.getElementById('stat-chats').innerText = data.active_chats;
-                document.getElementById('stat-lm').innerText = data.lm_studio_connected ? "1234 (Live)" : "Offline";
-                document.getElementById('stat-lm').className = data.lm_studio_connected ? "text-3xl font-light text-green-400" : "text-3xl font-light text-red-500";
-
-                // WhatsApp Status
-                const waBadge = document.getElementById('wa-badge');
-                const qrView = document.getElementById('qr-view');
-                const connView = document.getElementById('connected-view');
-                
-                waBadge.innerText = data.whatsapp_status.toUpperCase();
-                if(data.whatsapp_status === 'Connected') {
-                    waBadge.className = "absolute top-4 right-4 px-2 py-1 rounded text-[10px] font-bold tracking-wider bg-green-500/20 text-green-500 border border-green-500/30";
-                    qrView.classList.add('hidden'); connView.classList.remove('hidden');
-                } else if(data.whatsapp_status === 'Waiting') {
-                    waBadge.className = "absolute top-4 right-4 px-2 py-1 rounded text-[10px] font-bold tracking-wider bg-orange-500/20 text-orange-400 border border-orange-500/30";
-                    qrView.classList.remove('hidden'); connView.classList.add('hidden');
-                    if(data.qr_data) QRCode.toCanvas(document.getElementById('qrcode'), data.qr_data, { width: 180, margin: 1, color: { dark: '#000', light: '#fff' } });
+        async function loadTranscript() {
+            if (!currentChatId) return;
+            const res = await fetch(`${API}/api/transcript/${encodeURIComponent(currentChatId)}`);
+            const entries = await res.json();
+            const view = document.getElementById('transcriptView');
+            if (!entries.length) {
+                view.innerHTML = '<p class="text-gray-500">No messages logged yet for this chat.</p>';
+                return;
+            }
+            view.innerHTML = entries.map(e => {
+                const time = new Date(e.ts).toLocaleTimeString();
+                if (e.role === 'user') {
+                    return `<div class="bubble-user rounded-lg px-3 py-2 max-w-[80%]"><p class="text-gray-200">${escapeHtml(e.text)}</p><p class="text-gray-500 mt-1">${time} · ${escapeHtml(e.meta.sender_name || '')}</p></div>`;
+                } else if (e.role === 'assistant') {
+                    const mode = e.meta.mode ? ` · ${e.meta.mode}` : '';
+                    return `<div class="bubble-bot rounded-lg px-3 py-2 max-w-[80%] ml-auto"><p class="text-gray-100">${escapeHtml(e.text)}</p><p class="text-indigo-300 mt-1">${time}${mode}</p></div>`;
                 } else {
-                    waBadge.className = "absolute top-4 right-4 px-2 py-1 rounded text-[10px] font-bold tracking-wider bg-red-500/20 text-red-500 border border-red-500/30";
-                    qrView.classList.add('hidden'); connView.classList.remove('hidden');
-                    connView.innerHTML = '<i class="ph ph-warning-circle text-4xl text-red-500 mb-2"></i><h4 class="text-lg font-medium text-white">Bridge Offline</h4><p class="text-gray-500 mt-1">Boot Node.js Engine</p>';
+                    return `<div class="text-amber-500/70 text-center">${escapeHtml(e.text)} · ${time}</div>`;
                 }
-
-                // Settings Sync
-                const select = document.getElementById('model-select');
-                if (data.lm_studio_connected) {
-                    if (currentModel !== data.selected_model || select.options.length <= 1) {
-                        currentModel = data.selected_model;
-                        select.innerHTML = data.available_models.map(m => `<option value="${m}" ${m === data.selected_model ? 'selected' : ''}>${m}</option>`).join('');
-                    }
-                } else {
-                    select.innerHTML = '<option>LM Studio Offline</option>';
-                }
-
-                if(netEnabled !== data.internet_enabled) updateNetUI(data.internet_enabled);
-
-                // Logs Sync
-                const logBox = document.getElementById('log-box');
-                const htmlLogs = data.logs.map(log => {
-                    const isErr = log.includes('❌') || log.includes('⚠️');
-                    const color = isErr ? 'text-red-400' : (log.includes('🌐') ? 'text-brand-400' : 'text-green-400');
-                    return `<div class="mb-1"><span class="text-gray-600 mr-2">></span><span class="${color}">${log}</span></div>`;
-                }).join('');
-                if(logBox.innerHTML !== htmlLogs) {
-                    logBox.innerHTML = htmlLogs;
-                    logBox.scrollTop = logBox.scrollHeight;
-                }
-
-            } catch(e) {}
+            }).join('');
+            view.scrollTop = view.scrollHeight;
         }
-        setInterval(pollState, 1500);
-        pollState();
+
+        document.getElementById('refreshTranscriptBtn').addEventListener('click', loadTranscript);
+
+        // ---------- Logs ----------
+        async function loadLogs() {
+            const res = await fetch(`${API}/api/state`);
+            const data = await res.json();
+            const term = document.getElementById('logTerminal');
+            term.innerHTML = (data.logs || []).map(l => `<div class="text-gray-400">${l}</div>`).join('');
+            term.scrollTop = term.scrollHeight;
+        }
+
+        // ---------- Helpers ----------
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str ?? '';
+            return div.innerHTML;
+        }
+        function escapeAttr(str) {
+            return (str ?? '').replace(/"/g, '&quot;');
+        }
+
+        // ---------- Polling ----------
+        refreshState();
+        setInterval(refreshState, 3000);
+        setInterval(() => {
+            if (document.getElementById('tab-chats').classList.contains('active')) {
+                loadChatList();
+                if (currentChatId) loadTranscript();
+            }
+            if (document.getElementById('tab-logs').classList.contains('active')) loadLogs();
+        }, 4000);
+        loadChatList();
     </script>
 </body>
 </html>

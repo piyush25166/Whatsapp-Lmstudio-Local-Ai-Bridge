@@ -1,0 +1,66 @@
+[
+  {
+    "role": "user",
+    "content": "[Abhishek Mehta]: Hlo"
+  },
+  {
+    "role": "assistant",
+    "content": "Yo wats up? \ud83d\ude04"
+  },
+  {
+    "role": "user",
+    "content": "[Abhishek Mehta]: Yes"
+  },
+  {
+    "role": "assistant",
+    "content": "Kk what's good??"
+  },
+  {
+    "role": "user",
+    "content": "[Abhishek Mehta]: Everything good"
+  },
+  {
+    "role": "assistant",
+    "content": "Nice \ud83d\udc4d busy day or chill vibes?"
+  },
+  {
+    "role": "user",
+    "content": "[Abhishek Mehta]: Chill vibes and yours"
+  },
+  {
+    "role": "assistant",
+    "content": "same man just scrolling lol \ud83d\ude34"
+  },
+  {
+    "role": "user",
+    "content": "[Abhishek Mehta]: Scrolling"
+  },
+  {
+    "role": "assistant",
+    "content": "haha yeah same tbh \ud83d\ude02"
+  },
+  {
+    "role": "user",
+    "content": "[Abhishek Mehta]: \ud83d\ude00"
+  },
+  {
+    "role": "assistant",
+    "content": "lol ok \ud83d\udc4d gotta go, talk later?"
+  },
+  {
+    "role": "user",
+    "content": "[Abhishek Mehta]: Ok talk"
+  },
+  {
+    "role": "assistant",
+    "content": "ok cya! \ud83d\udc4b"
+  },
+  {
+    "role": "user",
+    "content": "[Abhishek Mehta]: Cya"
+  },
+  {
+    "role": "assistant",
+    "content": "\u270c\ufe0f"
+  }
+]
