@@ -4,6 +4,7 @@
   "casual_max_tokens": 6500,
   "thinking_max_tokens": 6000,
   "casual_temperature": 0.8,
+  
   "thinking_temperature": 0.6,
   "thinking_trigger_tag": "@think",
   "require_mention_in_groups": false,
