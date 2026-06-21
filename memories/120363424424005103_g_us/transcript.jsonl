@@ -11,3 +11,9 @@
 {"ts": "2026-06-21T21:22:44.520312+00:00", "role": "user", "text": "Nope", "meta": {"sender_name": "Skill Aaditya 😎🔥", "is_group": true, "replied": false}}
 {"ts": "2026-06-21T21:22:44.537975+00:00", "role": "user", "text": "Nope", "meta": {"sender_name": "Skill Aaditya 😎🔥", "is_group": true}}
 {"ts": "2026-06-21T21:22:45.294071+00:00", "role": "assistant", "text": "lol wyd rn? 🤔", "meta": {"mode": "casual", "max_tokens": 500, "tokens_used": 1456}}
+{"ts": "2026-06-21T21:37:07.623515+00:00", "role": "user", "text": "Ok", "meta": {"sender_name": "The Cyber", "is_group": true, "replied": false}}
+{"ts": "2026-06-21T21:37:07.641072+00:00", "role": "user", "text": "Ok", "meta": {"sender_name": "The Cyber", "is_group": true}}
+{"ts": "2026-06-21T21:37:08.336389+00:00", "role": "assistant", "text": "k 👍", "meta": {"mode": "casual", "max_tokens": 6500, "tokens_used": 1479}}
+{"ts": "2026-06-21T21:37:50.311504+00:00", "role": "user", "text": "Oh", "meta": {"sender_name": "The Cyber", "is_group": true, "replied": false}}
+{"ts": "2026-06-21T21:37:50.328760+00:00", "role": "user", "text": "Oh", "meta": {"sender_name": "The Cyber", "is_group": true}}
+{"ts": "2026-06-21T21:37:51.011271+00:00", "role": "assistant", "text": "huh? what's up?", "meta": {"mode": "casual", "max_tokens": 6500, "tokens_used": 1507}}

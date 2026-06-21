@@ -66,11 +66,12 @@ client.on('message', async msg => {
         const isGroup = chat.isGroup;
         const displayName = isGroup ? (chat.name || chatId) : senderName;
 
-        // Contact gate - block list, also registers/updates this contact
-        // in the admin panel's contact list even if it's the first message.
-        // Checked BEFORE the reply-trigger logic so a blocked group/contact
-        // never gets logged or replied to at all.
+        // Contact gate - block list + observer mode, also registers/updates
+        // this contact in the admin panel's contact list even if it's the
+        // first message. Checked BEFORE the reply-trigger logic so a
+        // blocked group/contact never gets logged or replied to at all.
         let blocked = false;
+        let observerMode = false;
         try {
             const gateRes = await axios.post(`${WEBUI_API}/api/check-contact`, {
                 chat_id: chatId,
@@ -78,10 +79,27 @@ client.on('message', async msg => {
                 is_group: isGroup,
             });
             blocked = gateRes.data.blocked;
+            observerMode = gateRes.data.observer;
         } catch (e) { /* fail open if panel unreachable */ }
 
         if (blocked) {
             await sendLogToUI(`[BRIDGE] Ignored message from blocked contact: ${displayName}`);
+            return;
+        }
+
+        // Observer mode: log everything, reply to nothing, no typing
+        // indicator ever shown - completely silent regardless of
+        // @mention/@think/mode override. This is the safest way to sit in
+        // a group and just watch.
+        if (observerMode) {
+            try {
+                await axios.post(`${WEBUI_API}/api/log-only`, {
+                    message: msg.body,
+                    chat_id: chatId,
+                    sender_name: senderName,
+                    is_group: isGroup,
+                });
+            } catch (e) { /* non-fatal */ }
             return;
         }
 
@@ -90,8 +108,7 @@ client.on('message', async msg => {
         let triggerReason = '';
 
         if (isGroup) {
-   
-         // Pull the live setting from the panel on every message, so a
+            // Pull the live setting from the panel on every message, so a
             // toggle flip takes effect immediately without restarting the
             // bridge.
             let requireMention = true;

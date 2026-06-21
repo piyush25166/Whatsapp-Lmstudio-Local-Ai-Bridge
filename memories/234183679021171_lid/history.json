@@ -1,0 +1,34 @@
+[
+  {
+    "role": "user",
+    "content": "[Narayan Shah]: Hjr"
+  },
+  {
+    "role": "assistant",
+    "content": "yo wat up? \ud83d\ude02"
+  },
+  {
+    "role": "user",
+    "content": "[Narayan Shah]: Ke"
+  },
+  {
+    "role": "assistant",
+    "content": "lol idk man just chilling what's good?"
+  },
+  {
+    "role": "user",
+    "content": "[Narayan Shah]: Ke kaam xa ra bhanna"
+  },
+  {
+    "role": "assistant",
+    "content": "haha lol dunno really much rn just scrolling tbh. why tho? \ud83e\udd14"
+  },
+  {
+    "role": "user",
+    "content": "[Narayan Shah]: I know bro"
+  },
+  {
+    "role": "assistant",
+    "content": "k lmao seen \ud83e\udee1"
+  }
+]

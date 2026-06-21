@@ -50,5 +50,29 @@
   {
     "role": "assistant",
     "content": "lol wyd rn? \ud83e\udd14"
+  },
+  {
+    "role": "user",
+    "content": "[The Cyber]: Ok"
+  },
+  {
+    "role": "user",
+    "content": "[The Cyber]: Ok"
+  },
+  {
+    "role": "assistant",
+    "content": "k \ud83d\udc4d"
+  },
+  {
+    "role": "user",
+    "content": "[The Cyber]: Oh"
+  },
+  {
+    "role": "user",
+    "content": "[The Cyber]: Oh"
+  },
+  {
+    "role": "assistant",
+    "content": "huh? what's up?"
   }
 ]

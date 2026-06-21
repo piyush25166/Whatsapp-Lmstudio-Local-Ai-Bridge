@@ -67,6 +67,9 @@
             <button class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-r-md border-l-2 border-transparent text-gray-400 hover:text-white text-left" data-tab="contacts">
                 <i class="ph-bold ph-users-three text-base"></i> Contacts &amp; Groups
             </button>
+            <button class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-r-md border-l-2 border-transparent text-gray-400 hover:text-white text-left" data-tab="persona">
+                <i class="ph-bold ph-mask-happy text-base"></i> Persona
+            </button>
             <button class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-r-md border-l-2 border-transparent text-gray-400 hover:text-white text-left" data-tab="settings">
                 <i class="ph-bold ph-sliders text-base"></i> Behavior &amp; Tokens
             </button>
@@ -175,6 +178,53 @@
             </div>
         </section>
 
+        <!-- PERSONA TAB -->
+        <section class="tab-content" id="tab-persona">
+            <h2 class="text-xl font-bold text-white mb-1">Persona</h2>
+            <p class="text-gray-500 text-xs mb-6">Edit how the clone talks, live. Changes apply to the very next message — no restart needed.</p>
+
+            <div class="grid grid-cols-3 gap-5">
+                <!-- Main persona editor -->
+                <div class="glass rounded-xl p-5 col-span-2">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2"><i class="ph-bold ph-mask-happy text-brand-400"></i> Full Persona</h3>
+                        <span id="personaSourceBadge" class="pill bg-gray-500/20 text-gray-400">Reading from disk</span>
+                    </div>
+                    <p class="text-[11px] text-gray-500 mb-3">This replaces the content of character.md + skill.md entirely once saved. Edit freely — it's just text sent to the model as the system prompt.</p>
+                    <textarea id="personaEditor" class="w-full h-[420px] bg-dark-900 border border-white/10 rounded-md p-3 text-xs font-mono text-gray-200 resize-none leading-relaxed" spellcheck="false"></textarea>
+                    <div class="flex items-center justify-between mt-3">
+                        <span id="personaCharCount" class="text-[11px] text-gray-500">0 characters</span>
+                        <div class="flex gap-2">
+                            <button id="revertPersonaBtn" class="text-xs text-gray-400 hover:text-white px-3 py-1.5 rounded-md border border-white/10">Revert to file on disk</button>
+                            <button id="savePersonaBtn" class="bg-brand-600 hover:bg-brand-500 text-white px-4 py-1.5 rounded-md text-xs font-medium">Save &amp; Apply</button>
+                        </div>
+                    </div>
+                    <span id="personaSaveConfirm" class="text-emerald-400 text-xs opacity-0 transition-opacity block mt-2 text-right">Saved — live now ✓</span>
+                </div>
+
+                <!-- Global guidance -->
+                <div class="glass rounded-xl p-5">
+                    <h3 class="text-sm font-semibold text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-lightbulb text-amber-400"></i> Quick Guidance</h3>
+                    <p class="text-[11px] text-gray-500 mb-3">A short steering note layered on top of the full persona for every reply right now — without editing the whole persona. e.g. <em>"be extra sarcastic today"</em> or <em>"mention the trip if it comes up"</em>.</p>
+                    <textarea id="guidanceEditor" class="w-full h-32 bg-dark-900 border border-white/10 rounded-md p-3 text-xs text-gray-200 resize-none leading-relaxed" placeholder="e.g. We're planning a surprise party for Sam this weekend, don't mention it unless asked directly."></textarea>
+                    <div class="flex gap-2 mt-3">
+                        <button id="saveGuidanceBtn" class="flex-1 bg-brand-600 hover:bg-brand-500 text-white px-3 py-1.5 rounded-md text-xs font-medium">Apply</button>
+                        <button id="clearGuidanceBtn" class="text-xs text-gray-400 hover:text-white px-3 py-1.5 rounded-md border border-white/10">Clear</button>
+                    </div>
+                    <span id="guidanceSaveConfirm" class="text-emerald-400 text-xs opacity-0 transition-opacity block mt-2">Applied ✓</span>
+
+                    <hr class="border-white/5 my-4">
+
+                    <p class="text-[11px] text-gray-500">
+                        <i class="ph-bold ph-info text-gray-400"></i>
+                        Precedence: <span class="text-gray-300">Full Persona</span> is the base.
+                        <span class="text-gray-300">Quick Guidance</span> is appended on top of it for every chat.
+                        Per-contact <span class="text-gray-300">Notes</span> (Contacts tab) are appended on top of both, but only for that one contact.
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <!-- SETTINGS TAB -->
         <section class="tab-content" id="tab-settings">
             <h2 class="text-xl font-bold text-white mb-1">Behavior &amp; Tokens</h2>
@@ -235,12 +285,38 @@
                         </button>
                     </div>
 
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between mb-4">
                         <div>
                             <p class="text-sm text-gray-200">Still remember unreplied group messages</p>
                             <p class="text-[11px] text-gray-500 mt-0.5">Keeps logging every group message to memory even when the bot doesn't reply, so it has real context whenever it does speak.</p>
                         </div>
                         <button id="logUnrepliedToggle" class="toggle relative w-9 h-5 rounded-full toggle-track shrink-0" style="background:#27272a">
+                            <span class="toggle-thumb absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white"></span>
+                        </button>
+                    </div>
+
+                    <hr class="border-white/5 my-4">
+
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-sm text-gray-200">Default policy for new groups</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">
+                                <span class="text-red-400">Block all by default</span> (recommended) — any group the bot has never seen
+                                is auto-blocked. You then explicitly allow only the specific groups you want from the Contacts tab.
+                            </p>
+                        </div>
+                        <select id="defaultGroupPolicy" class="bg-dark-900 border border-white/10 rounded px-3 py-2 text-xs text-white shrink-0">
+                            <option value="blocked">Block all by default</option>
+                            <option value="allowed">Allow all by default</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-200">New groups start in Observer Mode</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">Even a group you explicitly allow starts silent — logging only, no replies, no typing indicator — until you flip Observer Mode off for that specific group in Contacts.</p>
+                        </div>
+                        <button id="defaultObserverToggle" class="toggle relative w-9 h-5 rounded-full toggle-track shrink-0" style="background:#27272a">
                             <span class="toggle-thumb absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white"></span>
                         </button>
                     </div>
@@ -320,6 +396,7 @@
                 document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
                 if (btn.dataset.tab === 'contacts') loadContacts();
                 if (btn.dataset.tab === 'logs') loadLogs();
+                if (btn.dataset.tab === 'persona') loadPersona();
             });
         });
 
@@ -405,6 +482,8 @@
 
             setToggleVisual(document.getElementById('requireMentionToggle'), s.require_mention_in_groups);
             setToggleVisual(document.getElementById('logUnrepliedToggle'), s.log_unreplied_group_messages);
+            document.getElementById('defaultGroupPolicy').value = s.default_group_policy || 'blocked';
+            setToggleVisual(document.getElementById('defaultObserverToggle'), s.default_observer_for_groups);
         }
 
         // live label updates while dragging
@@ -439,6 +518,15 @@
             const newVal = !current.log_unreplied_group_messages;
             await fetch(`${API}/api/settings`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ log_unreplied_group_messages: newVal }) });
             setToggleVisual(document.getElementById('logUnrepliedToggle'), newVal);
+        });
+        document.getElementById('defaultGroupPolicy').addEventListener('change', async (e) => {
+            await fetch(`${API}/api/settings`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ default_group_policy: e.target.value }) });
+        });
+        document.getElementById('defaultObserverToggle').addEventListener('click', async () => {
+            const current = await (await fetch(`${API}/api/settings`)).json();
+            const newVal = !current.default_observer_for_groups;
+            await fetch(`${API}/api/settings`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ default_observer_for_groups: newVal }) });
+            setToggleVisual(document.getElementById('defaultObserverToggle'), newVal);
         });
 
         document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
@@ -498,6 +586,14 @@
                             <option value="casual" ${c.mode_override === 'casual' ? 'selected' : ''}>Force Casual</option>
                             <option value="thinking" ${c.mode_override === 'thinking' ? 'selected' : ''}>Force Thinking</option>
                         </select>
+                    </td>
+                    <td class="px-4 py-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <button class="observer-toggle toggle relative w-9 h-5 rounded-full toggle-track shrink-0" style="background:${c.observer_mode ? '#4f46e5' : '#27272a'}">
+                                <span class="toggle-thumb absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white" style="transform:${c.observer_mode ? 'translateX(16px)' : 'translateX(0)'}"></span>
+                            </button>
+                            <span class="text-[11px] ${c.observer_mode ? 'text-indigo-300' : 'text-gray-500'}">${c.observer_mode ? 'Silent' : 'Active'}</span>
+                        </label>
                     </td>
                     <td class="px-4 py-3">
                         <input type="text" class="notes-input bg-dark-900 border border-white/10 rounded px-2 py-1 text-xs text-gray-300 w-40" placeholder="e.g. my boss, stay formal" value="${escapeAttr(c.notes || '')}">
@@ -590,6 +686,60 @@
             term.innerHTML = (data.logs || []).map(l => `<div class="text-gray-400">${l}</div>`).join('');
             term.scrollTop = term.scrollHeight;
         }
+
+        // ---------- Persona ----------
+        async function loadPersona() {
+            const res = await fetch(`${API}/api/persona`);
+            const data = await res.json();
+            document.getElementById('personaEditor').value = data.persona_text;
+            document.getElementById('guidanceEditor').value = data.global_guidance;
+            updatePersonaCharCount();
+            const badge = document.getElementById('personaSourceBadge');
+            if (data.is_override_active) {
+                badge.textContent = 'Live override active';
+                badge.className = 'pill bg-brand-500/20 text-brand-300';
+            } else {
+                badge.textContent = 'Reading from disk';
+                badge.className = 'pill bg-gray-500/20 text-gray-400';
+            }
+        }
+
+        function updatePersonaCharCount() {
+            const len = document.getElementById('personaEditor').value.length;
+            document.getElementById('personaCharCount').textContent = `${len.toLocaleString()} characters`;
+        }
+        document.getElementById('personaEditor').addEventListener('input', updatePersonaCharCount);
+
+        document.getElementById('savePersonaBtn').addEventListener('click', async () => {
+            const text = document.getElementById('personaEditor').value;
+            await fetch(`${API}/api/persona`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ persona_text: text }) });
+            const confirmEl = document.getElementById('personaSaveConfirm');
+            confirmEl.style.opacity = 1;
+            setTimeout(() => confirmEl.style.opacity = 0, 1800);
+            loadPersona();
+        });
+
+        document.getElementById('revertPersonaBtn').addEventListener('click', async () => {
+            if (!confirm('Discard the live override and go back to character.md + skill.md as saved on disk?')) return;
+            const res = await fetch(`${API}/api/persona/revert`, { method: 'POST' });
+            const data = await res.json();
+            document.getElementById('personaEditor').value = data.persona_text;
+            updatePersonaCharCount();
+            loadPersona();
+        });
+
+        document.getElementById('saveGuidanceBtn').addEventListener('click', async () => {
+            const text = document.getElementById('guidanceEditor').value;
+            await fetch(`${API}/api/guidance`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ guidance: text }) });
+            const confirmEl = document.getElementById('guidanceSaveConfirm');
+            confirmEl.style.opacity = 1;
+            setTimeout(() => confirmEl.style.opacity = 0, 1800);
+        });
+
+        document.getElementById('clearGuidanceBtn').addEventListener('click', async () => {
+            document.getElementById('guidanceEditor').value = '';
+            await fetch(`${API}/api/guidance`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ guidance: '' }) });
+        });
 
         // ---------- Helpers ----------
         function escapeHtml(str) {

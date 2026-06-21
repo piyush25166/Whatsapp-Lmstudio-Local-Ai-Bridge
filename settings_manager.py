@@ -42,6 +42,19 @@ DEFAULTS = {
     "require_mention_in_groups": True,
     "log_unreplied_group_messages": True,
 
+    # Default-deny for groups: any NEW group the bot has never seen gets
+    # auto-blocked the instant it's registered. You then explicitly allow
+    # only the specific groups you want (set their contact status to
+    # "allowed" in the panel). DMs are unaffected by this - they use their
+    # own normal allowed-by-default behavior.
+    "default_group_policy": "blocked",   # "blocked" | "allowed"
+
+    # Even an explicitly allowed group starts in observer mode: the bot
+    # logs everything, replies to nothing, shows no typing indicator. You
+    # flip a specific group's observer mode off in the panel once you
+    # actually want it to start replying there.
+    "default_observer_for_groups": True,
+
     # Humanizer / pacing
     "pacing_strategy": "both",      # "delay" | "chunked" | "both"
     "typing_cps": 14,               # characters-per-second assumed typing speed

@@ -8,6 +8,7 @@ from skills import NexusSkills
 from memory_manager import MemoryManager
 from contact_manager import ContactManager
 from settings_manager import SettingsManager
+from prompt_manager import PromptManager
 from humanizer import humanize_reply
 
 app = Flask(__name__, template_folder="templates")
@@ -17,6 +18,7 @@ LM_STUDIO_URL = "http://127.0.0.1:1234"
 memory_engine = MemoryManager()
 contacts = ContactManager()
 settings = SettingsManager()
+prompts = PromptManager()
 memory_engine.char_limit = settings.get("memory_char_limit", 6000)
 
 # Global App State - runtime/connection info only. Anything the admin can
@@ -38,11 +40,10 @@ def log(text):
         state["logs"].pop(0)
 
 
-def load_persona():
-    """Loads character.md + skill.md once per call. These are small text
-    files so re-reading on each message is fine - the real token cost was
-    never the disk read, it's how many tokens get SENT to the model, which
-    is now controlled by max_tokens per mode below."""
+def load_default_persona_from_disk():
+    """Reads character.md + skill.md as they exist on disk right now. Used
+    both as the normal fallback AND as the source text the panel's editor
+    pre-fills with the first time you open it."""
     prompt = ""
     if os.path.exists("character.md"):
         with open("character.md", "r", encoding="utf-8") as f:
@@ -51,6 +52,28 @@ def load_persona():
         with open("skill.md", "r", encoding="utf-8") as f:
             prompt += f.read()
     return prompt if prompt else "You are a helpful assistant."
+
+
+def load_persona():
+    """Builds the system prompt for this message.
+
+    Precedence:
+    1. If the admin has saved a live persona override from the panel, use
+       that verbatim instead of character.md/skill.md.
+    2. Otherwise fall back to character.md + skill.md from disk, exactly
+       as before.
+    Then, if global guidance text is set, it's appended as an additional
+    instruction layered on top - this is the quick day-to-day steering box,
+    separate from the full persona edit.
+    """
+    override = prompts.get_persona_override()
+    base = override if override else load_default_persona_from_disk()
+
+    guidance = prompts.get_global_guidance()
+    if guidance:
+        base += f"\n\n---\nADMIN GUIDANCE (follow this for all replies right now): {guidance}"
+
+    return base
 
 
 # --- MODE RESOLUTION ---
@@ -171,6 +194,52 @@ def select_model():
     return jsonify({"success": True})
 
 
+# --- PERSONA / PROMPT MANAGEMENT ENDPOINTS ---
+
+@app.route("/api/persona", methods=["GET"])
+def get_persona():
+    """Returns everything the Persona panel tab needs: the currently active
+    text (override if set, else what's on disk), whether an override is
+    active, and the global guidance text."""
+    override = prompts.get_persona_override()
+    return jsonify({
+        "persona_text": override if override else load_default_persona_from_disk(),
+        "is_override_active": override is not None,
+        "global_guidance": prompts.get_global_guidance(),
+        "disk_text": load_default_persona_from_disk(),
+    })
+
+
+@app.route("/api/persona", methods=["POST"])
+def save_persona():
+    """Saves a live persona override. Takes effect on the very next
+    message - no restart, no file editing needed."""
+    text = (request.json or {}).get("persona_text", "")
+    prompts.set_persona_override(text)
+    log(f"🎭 Persona override saved ({len(text)} chars)")
+    return jsonify({"success": True})
+
+
+@app.route("/api/persona/revert", methods=["POST"])
+def revert_persona():
+    """Clears the override and goes back to character.md + skill.md as
+    they exist on disk - the safety net if a live edit breaks something."""
+    prompts.revert_persona_to_disk()
+    log("🎭 Persona reverted to character.md + skill.md on disk")
+    return jsonify({"success": True, "persona_text": load_default_persona_from_disk()})
+
+
+@app.route("/api/guidance", methods=["POST"])
+def save_guidance():
+    """Saves the quick day-to-day steering note layered on top of the full
+    persona. Separate from the persona override so you can clear one
+    without touching the other."""
+    text = (request.json or {}).get("guidance", "")
+    prompts.set_global_guidance(text)
+    log(f"💡 Global guidance updated ({len(text)} chars)" if text else "💡 Global guidance cleared")
+    return jsonify({"success": True})
+
+
 # --- CONTACT / GROUP MANAGEMENT ENDPOINTS ---
 
 @app.route("/api/contacts", methods=["GET"])
@@ -203,6 +272,18 @@ def set_contact_mode(chat_id):
     ok = contacts.set_mode_override(chat_id, mode)
     if ok:
         log(f"👤 {chat_id} mode override set to {mode or 'auto'}")
+    return jsonify({"success": ok})
+
+
+@app.route("/api/contacts/<chat_id>/observer", methods=["POST"])
+def set_contact_observer(chat_id):
+    """Toggles observer/silent mode for one specific contact or group -
+    logs everything, replies to nothing, no typing indicator, regardless
+    of @mention/@think/mode override."""
+    enabled = bool((request.json or {}).get("enabled", True))
+    ok = contacts.set_observer_mode(chat_id, enabled)
+    if ok:
+        log(f"👁️ {chat_id} observer mode set to {enabled}")
     return jsonify({"success": ok})
 
 
@@ -313,20 +394,37 @@ def check_bot_enabled():
 @app.route("/api/check-contact", methods=["POST"])
 def check_contact():
     """Bridge calls this BEFORE sending to /api/chat so blocked contacts
-    never even hit the LLM pipeline (saves tokens + keeps it instant)."""
+    never even hit the LLM pipeline (saves tokens + keeps it instant).
+
+    Also where new groups get their FIRST-TIME defaults applied:
+    - default_group_policy decides whether a brand-new group starts
+      blocked or allowed.
+    - default_observer_for_groups decides whether a brand-new group starts
+      in silent/observer mode (logs only, never replies, never types).
+    These only apply once, on first sight of a chat_id - after that the
+    admin's explicit choice in the panel always wins."""
     data = request.json or {}
     chat_id = data.get("chat_id", "")
     display_name = data.get("display_name", "")
     is_group = bool(data.get("is_group", False))
+
+    default_status = "allowed"
+    default_observer = False
+    if is_group:
+        default_status = settings.get("default_group_policy", "blocked")
+        default_observer = bool(settings.get("default_observer_for_groups", True))
 
     contacts.touch(
         chat_id,
         display_name=display_name,
         is_group=is_group,
         timestamp=datetime.now(timezone.utc).isoformat(),
+        default_status=default_status,
+        default_observer=default_observer,
     )
     blocked = contacts.is_blocked(chat_id)
-    return jsonify({"blocked": blocked})
+    observer = contacts.is_observer(chat_id)
+    return jsonify({"blocked": blocked, "observer": observer})
 
 
 @app.route("/api/chat", methods=["POST"])

@@ -52,24 +52,38 @@ class ContactManager:
 
     # ---------- core record management ----------
 
-    def _default_record(self, chat_id, display_name="", is_group=False):
+    def _default_record(self, chat_id, display_name="", is_group=False,
+                         default_status="allowed", default_observer=False):
         return {
             "chat_id": chat_id,
             "display_name": display_name or chat_id,
             "is_group": is_group,
-            "status": "allowed",
+            "status": default_status,
             "mode_override": None,
+            "observer_mode": default_observer,
             "notes": "",
             "message_count": 0,
             "first_seen": None,
             "last_seen": None,
         }
 
-    def touch(self, chat_id, display_name=None, is_group=False, timestamp=None):
+    def touch(self, chat_id, display_name=None, is_group=False, timestamp=None,
+              default_status="allowed", default_observer=False):
         """Call this on every incoming message. Creates the record if new,
-        updates last_seen / display_name / message_count if it exists."""
+        updates last_seen / display_name / message_count if it exists.
+
+        default_status / default_observer only apply the FIRST time this
+        chat_id is ever seen - app.py passes in the current
+        default_group_policy / default_observer_for_groups settings so new
+        groups start blocked-or-allowed and observer-or-active exactly the
+        way the admin has configured. Once a record exists, these are
+        ignored - the admin's explicit per-contact choice always wins.
+        """
         if chat_id not in self._data:
-            self._data[chat_id] = self._default_record(chat_id, display_name, is_group)
+            self._data[chat_id] = self._default_record(
+                chat_id, display_name, is_group,
+                default_status=default_status, default_observer=default_observer,
+            )
             self._data[chat_id]["first_seen"] = timestamp
         rec = self._data[chat_id]
         if display_name:
@@ -111,6 +125,18 @@ class ContactManager:
         self._save()
         return True
 
+    def set_observer_mode(self, chat_id, enabled):
+        """When True: bot logs this chat's messages but NEVER replies and
+        NEVER shows a typing indicator, regardless of @mention/@think/mode
+        override. Independent of block/allow - a blocked chat is already
+        silent; observer mode is for chats you WANT to allow and read, just
+        not have the bot talk in yet."""
+        if chat_id not in self._data:
+            self._data[chat_id] = self._default_record(chat_id)
+        self._data[chat_id]["observer_mode"] = bool(enabled)
+        self._save()
+        return True
+
     def set_notes(self, chat_id, notes):
         if chat_id not in self._data:
             self._data[chat_id] = self._default_record(chat_id)
@@ -128,6 +154,10 @@ class ContactManager:
     def is_blocked(self, chat_id):
         rec = self._data.get(chat_id)
         return bool(rec and rec.get("status") == "blocked")
+
+    def is_observer(self, chat_id):
+        rec = self._data.get(chat_id)
+        return bool(rec and rec.get("observer_mode", False))
 
     def get_mode_override(self, chat_id):
         rec = self._data.get(chat_id)
