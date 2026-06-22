@@ -1,2 +1,0 @@
-{"ts": "2026-06-21T21:34:49.166610+00:00", "role": "user", "text": "Hi", "meta": {"sender_name": "The Cyber", "is_group": false}}
-{"ts": "2026-06-21T21:34:50.403236+00:00", "role": "assistant", "text": "yo what up", "meta": {"mode": "casual", "max_tokens": 6500, "tokens_used": 1312}}
